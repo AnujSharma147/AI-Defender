@@ -14,9 +14,10 @@ export default function ResultCard({ isDeepfake, confidence, onRestore }: Result
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.8, type: "spring" }}
+      initial={{ opacity: 0, scale: 0.6, y: 40 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.8, y: -30 }}
+      transition={{ duration: 1, type: "spring", stiffness: 80, damping: 12 }}
       className="fixed inset-0 z-50 flex items-center justify-center"
       style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(15px)" }}
     >

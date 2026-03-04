@@ -7,6 +7,8 @@ import JarvisOverlay from "@/components/JarvisOverlay";
 import ResultCard from "@/components/ResultCard";
 import ShatterEffect from "@/components/ShatterEffect";
 import { useVoice } from "@/hooks/useVoice";
+import { useMouseGlow } from "@/hooks/useMouseGlow";
+import { useScanSound } from "@/hooks/useScanSound";
 import { Shield } from "lucide-react";
 
 type Phase = "idle" | "scanning" | "shatter" | "result";
@@ -16,11 +18,14 @@ const Index = () => {
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<{ isDeepfake: boolean; confidence: number } | null>(null);
   const { speak } = useVoice();
+  const mouse = useMouseGlow();
+  const playScanSound = useScanSound();
 
   const startScan = useCallback((_url: string) => {
+    playScanSound();
     setPhase("scanning");
     setProgress(0);
-  }, []);
+  }, [playScanSound]);
 
   // Simulate progress
   useEffect(() => {
@@ -63,7 +68,32 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen relative cursor-none">
+      {/* Mouse glow */}
+      <div
+        className="pointer-events-none fixed z-[100] rounded-full"
+        style={{
+          left: mouse.x - 150,
+          top: mouse.y - 150,
+          width: 300,
+          height: 300,
+          background: "radial-gradient(circle, rgba(34,211,238,0.07) 0%, transparent 70%)",
+          transition: "left 0.05s linear, top 0.05s linear",
+        }}
+      />
+      {/* Cyan neon cursor */}
+      <div
+        className="pointer-events-none fixed z-[101] rounded-full"
+        style={{
+          left: mouse.x - 6,
+          top: mouse.y - 6,
+          width: 12,
+          height: 12,
+          background: "var(--dd-cyan)",
+          boxShadow: "0 0 8px var(--dd-cyan), 0 0 20px rgba(34,211,238,0.4)",
+          transition: "left 0.02s linear, top 0.02s linear",
+        }}
+      />
       <ParticleField />
 
       {/* Header */}

@@ -53,6 +53,10 @@
     color: hsl(var(--foreground));
     font-family: 'Inter', sans-serif;
     overflow-x: hidden;
+    cursor: none;
+  }
+  a, button, input, [role="button"] {
+    cursor: none;
   }
 }
 
