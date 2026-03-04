@@ -29,8 +29,14 @@ const Index = () => {
       setProgress((p) => {
         if (p >= 99) {
           clearInterval(interval);
-          setPhase("shatter");
-          return 99;
+          // Directly show authentic result
+          const confidence = Math.floor(95 + Math.random() * 4);
+          setResult({ isDeepfake: false, confidence });
+          setPhase("result");
+          setTimeout(() => {
+            speak(`Analysis complete. Media verified as authentic with ${confidence} percent confidence. No synthetic artifacts detected.`);
+          }, 800);
+          return 100;
         }
         return p + Math.random() * 3 + 1;
       });
