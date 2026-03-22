@@ -1,0 +1,14 @@
+{
+  "hf_weight": 0.5,
+  "clip_weight": 0.0,
+  "heuristic_weight": 0.5,
+  "threshold": 0.53,
+  "metrics": {
+    "objective": 0.881434,
+    "balanced_accuracy": 0.90625,
+    "accuracy": 0.823529,
+    "rows": 17,
+    "real_count": 16,
+    "fake_count": 1
+  }
+}

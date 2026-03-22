@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+
 import { RotateCcw } from "lucide-react";
 
 interface ResultCardProps {
@@ -12,6 +13,7 @@ export default function ResultCard({ isDeepfake, confidence, onRestore }: Result
     ? "JARVIS has identified synthetic neural artifacts. This media has been digitally manipulated with high confidence. Exercise extreme caution."
     : "JARVIS analysis complete. No synthetic artifacts detected. Media integrity verified across all neural checkpoints.";
 
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.8 }}
@@ -20,6 +22,7 @@ export default function ResultCard({ isDeepfake, confidence, onRestore }: Result
       className="fixed inset-0 z-50 flex items-center justify-center"
       style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(15px)" }}
     >
+
       <div className="flex flex-col items-center max-w-lg text-center px-6">
         {/* Glowing orb */}
         <motion.div
@@ -84,6 +87,7 @@ export default function ResultCard({ isDeepfake, confidence, onRestore }: Result
           <RotateCcw className="w-5 h-5" />
           SYSTEM RESTORE
         </motion.button>
+
       </div>
     </motion.div>
   );

@@ -4,9 +4,11 @@ import { Activity, Cpu } from "lucide-react";
 interface StatusPanelProps {
   progress: number;
   isScanning: boolean;
+
 }
 
 export default function StatusPanel({ progress, isScanning }: StatusPanelProps) {
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 40 }}
@@ -41,6 +43,8 @@ export default function StatusPanel({ progress, isScanning }: StatusPanelProps) 
           { label: "Protocol", value: isScanning ? "Active" : "Standby", active: isScanning },
           { label: "Neural Net", value: isScanning ? "Processing" : "Idle", active: isScanning },
           { label: "Threat Level", value: isScanning ? "Scanning" : "Unknown", active: isScanning },
+
+
         ].map((item) => (
           <div
             key={item.label}
@@ -60,9 +64,11 @@ export default function StatusPanel({ progress, isScanning }: StatusPanelProps) 
 
       {/* Activity indicator */}
       <div className="flex items-center gap-3 mt-auto">
+
         <Activity className="w-4 h-4" style={{ color: isScanning ? "var(--dd-cyan)" : "rgba(34,211,238,0.2)" }} />
         <span className="font-mono-hud text-xs text-muted-foreground">
           {isScanning ? "DEEP SCAN IN PROGRESS" : "AWAITING COMMAND"}
+
         </span>
       </div>
     </motion.div>

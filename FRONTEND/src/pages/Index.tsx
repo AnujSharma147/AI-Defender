@@ -1,9 +1,12 @@
+
 import { useState, useCallback, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+
 import ParticleField from "@/components/ParticleField";
 import ScanPanel from "@/components/ScanPanel";
 import StatusPanel from "@/components/StatusPanel";
 import JarvisOverlay from "@/components/JarvisOverlay";
+
 import ResultCard from "@/components/ResultCard";
 import ShatterEffect from "@/components/ShatterEffect";
 import { useVoice } from "@/hooks/useVoice";
@@ -11,9 +14,11 @@ import { Shield } from "lucide-react";
 
 type Phase = "idle" | "scanning" | "shatter" | "result";
 
+
 const Index = () => {
   const [phase, setPhase] = useState<Phase>("idle");
   const [progress, setProgress] = useState(0);
+
   const [result, setResult] = useState<{ isDeepfake: boolean; confidence: number } | null>(null);
   const { speak, stop } = useVoice();
 
@@ -67,10 +72,12 @@ const Index = () => {
     setPhase("idle");
     setProgress(0);
     setResult(null);
+
   }, [stop]);
 
   return (
     <div className="min-h-screen relative">
+
       <ParticleField />
 
       {/* Header */}
@@ -131,8 +138,11 @@ const Index = () => {
           />
         )}
       </AnimatePresence>
+
     </div>
   );
 };
 
+
 export default Index;
+
