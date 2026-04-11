@@ -4,9 +4,10 @@ import { motion } from "framer-motion";
 interface JarvisOverlayProps {
   progress: number;
   onComplete: () => void;
+  subtitle?: string;
 }
 
-export default function JarvisOverlay({ progress, onComplete }: JarvisOverlayProps) {
+export default function JarvisOverlay({ progress, onComplete, subtitle }: JarvisOverlayProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -137,7 +138,7 @@ export default function JarvisOverlay({ progress, onComplete }: JarvisOverlayPro
             JARVIS
           </span>
           <span className="font-mono-hud text-xs text-glow-cyan mt-2 tracking-widest">
-            ANALYZING NEURAL PATTERNS
+            {subtitle ?? "ANALYZING NEURAL PATTERNS"}
           </span>
         </div>
 
