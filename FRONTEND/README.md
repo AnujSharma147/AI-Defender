@@ -1,73 +1,83 @@
-# Welcome to your Lovable project
+# Deep Defend OS Frontend
 
-## Project info
+Deep Defend OS is the operator-facing UI for a multi-modal detection pipeline. It is built to scan images, audio, and video with a console-style experience that favors speed, clarity, and high-trust output over generic dashboard behavior.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Mission
 
-## How can I edit this code?
+This frontend handles the complete user journey:
 
-There are several ways of editing your application.
+- ingest media files
+- warm up backend models when needed
+- show scan progress in stages
+- render final detection results with media-specific detail
 
-**Use Lovable**
+The interface is intentionally focused. The main scan flow lives in one place, while supporting components handle upload, status, and result rendering.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## What You Get
 
-Changes made via Lovable will be committed automatically to this repo.
+- Multi-file upload for image, audio, and video scanning.
+- Live model warmup and backend status visibility.
+- Staged progress feedback with a JARVIS-style overlay.
+- Rich result cards for image detections, audio ensemble output, and video analysis.
+- Playback support for scanned audio files.
 
-**Use your preferred IDE**
+## Stack
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- Vite
+- React 18
+- TypeScript
+- Tailwind CSS
+- shadcn/ui
+- Framer Motion
+- React Router
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+## Local Run
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The frontend expects the backend at `http://127.0.0.1:8001`.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Scripts
 
-**Use GitHub Codespaces**
+- `npm run dev` - start the development server.
+- `npm run build` - create the production bundle.
+- `npm run preview` - preview the built app locally.
+- `npm run lint` - run ESLint.
+- `npm run test` - run the test suite.
+- `npm run test:watch` - keep tests running in watch mode.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Key Files
 
-## What technologies are used for this project?
+- `src/pages/Index.tsx` - scan orchestration, warmup flow, and result assembly.
+- `src/components/ScanPanel.tsx` - file selection and scan trigger UI.
+- `src/components/StatusPanel.tsx` - backend health and model state display.
+- `src/components/ResultCard.tsx` - final output for image, audio, and video scans.
+- `src/components/JarvisOverlay.tsx` - full-screen staged progress overlay.
 
-This project is built with:
+## Backend Contract
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+The frontend talks to these backend endpoints:
 
-## How can I deploy this project?
+- `POST /scan` - scan an uploaded file.
+- `GET /model-status` - check model readiness.
+- `POST /warmup-models` - preload models for the requested media types.
+- `GET /audio-loading-status` - inspect audio ensemble loading state.
+- `GET /health` - verify service availability.
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+## Design Notes
 
-## Can I connect a custom domain to my Lovable project?
+- Media uploads are only handled in the backend; the frontend stays focused on orchestration and presentation.
+- Audio results can show ensemble breakdowns, voting, and probability averages.
+- Video and image results use the same results surface, but each one renders its own detector-specific details.
+- The UI is designed to feel deliberate: fast transitions, strong contrast, and operational feedback instead of generic app chrome.
 
-Yes, you can!
+## Build And Ship
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+```sh
+npm run build
+```
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Serve the generated static assets from your preferred host and point the frontend to a reachable backend before deployment.

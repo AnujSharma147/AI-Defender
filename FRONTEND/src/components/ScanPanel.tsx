@@ -1,23 +1,23 @@
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
-
-import { Shield, Upload, Zap, X, Image, Video } from "lucide-react";
+import { Shield, Upload, Zap, X, Image, Video, AudioLines } from "lucide-react";
 
 interface ScanPanelProps {
-  onScan: (url: string) => void;
+  onScan: (payload: { url: string; files: File[] }) => void;
   isScanning: boolean;
+  backendConnected: boolean | null;
 }
 
-export default function ScanPanel({ onScan, isScanning }: ScanPanelProps) {
- 
+export default function ScanPanel({ onScan, isScanning, backendConnected }: ScanPanelProps) {
+
   const [url, setUrl] = useState("");
   const [dragOver, setDragOver] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
 
-
-  const MAX_VIDEO_SIZE = 1024 * 1024 * 1024; // 1GB
-  const MAX_IMAGE_SIZE = 50 * 1024 * 1024; // 50MB
+  const MAX_VIDEO_SIZE = 1024 * 1024 * 1024;
+  const MAX_IMAGE_SIZE = 50 * 1024 * 1024;
+  const MAX_AUDIO_SIZE = 200 * 1024 * 1024;
 
   const handleFileSelect = (files: FileList | null) => {
 
@@ -30,9 +30,9 @@ export default function ScanPanel({ onScan, isScanning }: ScanPanelProps) {
 
       const isVideo = file.type.startsWith("video/");
       const isImage = file.type.startsWith("image/");
+      const isAudio = file.type.startsWith("audio/");
 
-      if (!isVideo && !isImage) {
-
+      if (!isVideo && !isImage && !isAudio) {
         errors.push(`${file.name}: Invalid file type`);
         return;
       }
@@ -47,6 +47,10 @@ export default function ScanPanel({ onScan, isScanning }: ScanPanelProps) {
         return;
       }
 
+      if (isAudio && file.size > MAX_AUDIO_SIZE) {
+        errors.push(`${file.name}: Audio exceeds 200MB limit`);
+        return;
+      }
 
       validFiles.push(file);
 
@@ -56,9 +60,16 @@ export default function ScanPanel({ onScan, isScanning }: ScanPanelProps) {
       alert(errors.join("\n"));
     }
 
+    setSelectedFiles((prev) => {
+      const deduped = new Map<string, File>();
 
-    setSelectedFiles((prev) => [...prev, ...validFiles]);
+      [...prev, ...validFiles].forEach((file) => {
+        const key = `${file.name}-${file.size}-${file.lastModified}`;
+        deduped.set(key, file);
+      });
 
+      return Array.from(deduped.values());
+    });
   };
 
   const removeFile = (index: number) => {
@@ -70,7 +81,19 @@ export default function ScanPanel({ onScan, isScanning }: ScanPanelProps) {
     if (bytes < 1024) return bytes + " B";
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + " KB";
     if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(2) + " MB";
+
     return (bytes / (1024 * 1024 * 1024)).toFixed(2) + " GB";
+  };
+
+  const canStartScan = !isScanning && selectedFiles.length > 0 && backendConnected !== false;
+
+  const startScan = () => {
+    if (!canStartScan) return;
+
+    onScan({
+      url: url.trim(),
+      files: [...selectedFiles],
+    });
   };
 
   return (
@@ -81,10 +104,6 @@ export default function ScanPanel({ onScan, isScanning }: ScanPanelProps) {
       transition={{ duration: 0.8, delay: 0.2 }}
       className="glass-panel p-8 flex flex-col gap-6 relative overflow-hidden"
     >
-
-
-
-      {/* Scan line */}
 
       {isScanning && (
         <div
@@ -98,11 +117,13 @@ export default function ScanPanel({ onScan, isScanning }: ScanPanelProps) {
 
       <div className="flex items-center gap-3">
         <Shield className="w-6 h-6" style={{ color: "var(--dd-cyan)" }} />
-
-        <h2 className="text-xl font-bold text-glow-cyan tracking-wide">Neural Scan</h2>
+        <h2 className="text-xl font-bold text-glow-cyan tracking-wide">
+          Neural Scan
+        </h2>
       </div>
 
       <div>
+
         <label className="font-mono-hud text-xs text-muted-foreground tracking-widest mb-2 block">
           TARGET URL
         </label>
@@ -112,81 +133,76 @@ export default function ScanPanel({ onScan, isScanning }: ScanPanelProps) {
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder="https://target-media-url.com"
-
-          className="w-full px-5 py-3 rounded-2xl font-mono-hud text-sm text-glow-cyan placeholder:text-muted-foreground/40 outline-none focus:ring-1 focus:ring-primary/40 transition-all"
-          style={{
-            background: "rgba(10, 10, 30, 0.8)",
-            border: "1px solid rgba(34, 211, 238, 0.15)",
-          }}
+          className="w-full px-5 py-3 rounded-2xl font-mono-hud text-sm text-glow-cyan placeholder:text-muted-foreground/40 outline-none"
         />
+
       </div>
 
-      {/* Drag & drop zone */}
       <div
         className="relative rounded-2xl flex flex-col items-center justify-center py-10 cursor-pointer transition-all"
         style={{
-          background: dragOver ? "rgba(34, 211, 238, 0.05)" : "rgba(10, 10, 30, 0.4)",
-          border: `2px dashed ${dragOver ? "rgba(34, 211, 238, 0.5)" : "rgba(34, 211, 238, 0.1)"}`,
-
+          border: `1px dashed ${dragOver ? "rgba(34, 211, 238, 0.55)" : "rgba(34, 211, 238, 0.2)"}`,
+          background: dragOver ? "rgba(34, 211, 238, 0.08)" : "rgba(10, 10, 30, 0.35)",
+          opacity: isScanning ? 0.7 : 1,
+          pointerEvents: isScanning ? "none" : "auto",
         }}
         onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
         onDragLeave={() => setDragOver(false)}
         onDrop={(e) => {
           e.preventDefault();
-
+          if (isScanning) return;
           setDragOver(false);
           handleFileSelect(e.dataTransfer.files);
         }}
-        onClick={() => fileRef.current?.click()}
+        onClick={() => {
+          if (isScanning) return;
+          fileRef.current?.click();
+        }}
       >
 
         <input
           ref={fileRef}
           type="file"
           className="hidden"
-
-          accept="image/*,video/*"
+          accept="image/*,video/*,audio/*,.mp3,.mp4,.wav,.ogg,.m4a,.mpeg,.mp2,.m2a"
           multiple
-          onChange={(e) => handleFileSelect(e.target.files)}
+          onChange={(e) => {
+            handleFileSelect(e.target.files);
+            e.currentTarget.value = "";
+          }}
         />
-        <Upload className="w-8 h-8 mb-3" style={{ color: "rgba(34, 211, 238, 0.4)" }} />
+
+        <Upload className="w-8 h-8 mb-3" />
+
         <span className="font-mono-hud text-xs text-muted-foreground text-center px-4">
-          DROP MULTIPLE IMAGES/VIDEOS OR CLICK TO UPLOAD
+          DROP MULTIPLE IMAGES / VIDEOS / AUDIO
         </span>
-        <span className="font-mono-hud text-[10px] text-muted-foreground/60 mt-2">
-          Images: up to 50MB | Videos: up to 1GB
-        </span>
+
       </div>
 
-      {/* Selected Files Display */}
       {selectedFiles.length > 0 && (
+
         <div className="space-y-2 max-h-48 overflow-y-auto">
-          <label className="font-mono-hud text-xs text-muted-foreground tracking-widest">
-            SELECTED FILES ({selectedFiles.length})
-          </label>
+
           {selectedFiles.map((file, index) => {
+
             const isVideo = file.type.startsWith("video/");
+            const isAudio = file.type.startsWith("audio/");
+
             return (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                className="flex items-center gap-3 p-3 rounded-xl"
-                style={{
-                  background: "rgba(10, 10, 30, 0.6)",
-                  border: "1px solid rgba(34, 211, 238, 0.15)",
-                }}
-              >
-                {isVideo ? (
-                  <Video className="w-5 h-5 flex-shrink-0" style={{ color: "var(--dd-magenta)" }} />
-                ) : (
-                  <Image className="w-5 h-5 flex-shrink-0" style={{ color: "var(--dd-cyan)" }} />
-                )}
+
+              <div key={index} className="flex items-center gap-3 p-3 rounded-xl">
+
+                {isVideo
+                  ? <Video className="w-5 h-5" />
+                  : isAudio
+                    ? <AudioLines className="w-5 h-5" />
+                    : <Image className="w-5 h-5" />}
+
                 <div className="flex-1 min-w-0">
-                  <div className="font-mono-hud text-xs text-glow-cyan truncate">{file.name}</div>
-                  <div className="font-mono-hud text-[10px] text-muted-foreground">
-                    {formatFileSize(file.size)} • {isVideo ? "Video" : "Image"}
+                  <div className="text-xs truncate">{file.name}</div>
+                  <div className="text-[10px]">
+                    {formatFileSize(file.size)}
                   </div>
                 </div>
 
@@ -195,28 +211,49 @@ export default function ScanPanel({ onScan, isScanning }: ScanPanelProps) {
                     e.stopPropagation();
                     removeFile(index);
                   }}
-
-                  className="p-1 rounded-lg hover:bg-red-500/20 transition-colors"
                 >
                   <X className="w-4 h-4 text-red-400" />
                 </button>
-              </motion.div>
+
+              </div>
 
             );
           })}
         </div>
       )}
 
+      {backendConnected === false && (
+        <div
+          className="rounded-xl px-4 py-3 font-mono-hud text-xs"
+          style={{
+            color: "#fca5a5",
+            background: "rgba(239, 68, 68, 0.12)",
+            border: "1px solid rgba(239, 68, 68, 0.3)",
+          }}
+        >
+          Backend offline. Please start FastAPI server first.
+        </div>
+      )}
 
       <button
-        onClick={() => onScan(url)}
-        disabled={isScanning || (!url.trim() && selectedFiles.length === 0)}
-        className="btn-gradient py-4 px-8 text-sm font-bold tracking-[0.2em] uppercase flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+        onClick={startScan}
+        disabled={!canStartScan}
+        className="btn-gradient w-full py-4 px-8 flex items-center justify-center gap-3 font-mono-hud text-sm tracking-[0.15em] disabled:opacity-50 disabled:cursor-not-allowed"
       >
+
         <Zap className="w-5 h-5" />
-        {isScanning ? "SCANNING..." : "INITIATE DEEP SCAN"}
+
+        {isScanning
+          ? "SCANNING..."
+          : backendConnected === false
+            ? "BACKEND OFFLINE"
+            : selectedFiles.length === 0
+              ? "ADD FILES TO SCAN"
+              : "INITIATE DEEP SCAN"}
+
       </button>
+
     </motion.div>
+
   );
 }
-
