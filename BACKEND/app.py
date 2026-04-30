@@ -4,6 +4,7 @@ import shutil
 import os
 import uuid
 import time # Time add kiya hai
+import threading
 from pydantic import BaseModel
 from typing import List
 
@@ -29,6 +30,17 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 class WarmupRequest(BaseModel):
     media_types: List[str] = []
+
+
+@app.on_event("startup")
+def warmup_video_models_on_startup():
+    def _warmup():
+        try:
+            warmup_video_models()
+        except Exception as e:
+            print(f"[WARNING] Video warmup failed: {e}")
+
+    threading.Thread(target=_warmup, daemon=True).start()
 
 # Helper function to safely delete files on Windows
 def safe_remove(path):
@@ -70,7 +82,11 @@ async def scan(file: UploadFile = File(...)):
             # Video models file release karne mein time lete hain
             # Isliye hum response ke baad delete karne ki koshish karenge
             safe_remove(path)
-            return result
+            return {
+                "type": "video",
+                "result": result,
+                "deepfake_result": result,
+            }
 
         else:
             safe_remove(path)
@@ -129,6 +145,14 @@ def audio_loading_status():
         "error": _error
     }
 
+
+@app.get("/video-loading-status")
+def video_loading_status():
+    """Get current video model loading progress"""
+    return get_video_model_status()
+
 @app.get("/health")
 def health():
     return {"status": "Deep-Defend is Live"}
+
+ 
